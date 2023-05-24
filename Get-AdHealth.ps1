@@ -191,7 +191,6 @@ foreach ($sitename in $Siteinfo.SiteName) {
     try {
         $hosts = Get-ADDomainController -Discover -Site $sitename
         foreach ($server in $hosts.HostName) {
-            Write-Host $server
             try {
                 $dnsResolution = Test-Connection -ComputerName $server -Count 1 -Quiet
         
