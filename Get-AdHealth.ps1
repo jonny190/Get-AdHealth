@@ -276,18 +276,12 @@ Write-Host "`nWe"$SPNResult"`n"
 
 #Display time server source 
 $Timesource = Invoke-Expression "w32tm /query /computer:$computers /source"
-if ($Timesource -like "*Local*") {
-    if ($IsVirtual -eq "True") {
+if ($IsVirtual -eq "True") {
+    if ($Timesource -like "*Local*") {
         Write-Host "This servers time source is" $Timesource "and this is a VM so check hypervisor time settings`n" -ForegroundColor Yellow
-    } else {
-                Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Yellow
     }
-}
-elseif ($Timesource -like "*Free-running*") {
-    if ($IsVirtual -eq "True") {
+    elseif ($Timesource -like "*Free-running*") {
         Write-Host "This servers time source is" $Timesource "and this is a VM so check hypervisor time settings`n" -ForegroundColor Yellow
-    } else {
-                Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Yellow
     }
 } else {
     Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Green
