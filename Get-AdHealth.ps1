@@ -282,6 +282,13 @@ if ($Timesource -like "*Local*") {
     } else {
                 Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Yellow
     }
+}
+elseif ($Timesource -like "*Free-running*") {
+    if ($IsVirtual -eq "True") {
+        Write-Host "This servers time source is" $Timesource "and this is a VM so check hypervisor time settings`n" -ForegroundColor Yellow
+    } else {
+                Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Yellow
+    }
 } else {
     Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Green
 }
