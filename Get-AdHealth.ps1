@@ -90,7 +90,7 @@ if ($IsVirtual -eq "True") {
 }
 
 #Hostname Printout
-write-host $env:COMPUTERNAME -ForegroundColor Green
+write-host "Hostname is"$env:COMPUTERNAME -ForegroundColor Green
 
 # Check if the Active Directory module is available 
 
@@ -308,3 +308,18 @@ else {
     Write-host "Only one DNS forwarder is configured" -ForegroundColor Red
 }
 }
+
+#Checking PasswordNotRequired
+$NoPassReq = Get-ADUser -Filter {PasswordNotRequired -eq $true} -Properties *
+Write-host "Below are accounts with the attribute PasswordNotRequired set:"
+foreach ($user in $NoPassReq){
+    Write-Host $user.CanonicalName -ForegroundColor Red
+}
+
+#Checking PasswordNeverExpires
+$NoPassReq = get-aduser -filter * -properties Name, PasswordNeverExpires | where {$_.passwordNeverExpires -eq "true" }
+Write-host "Below are accounts with the attribute PasswordNeverExpires set:"
+foreach ($user in $NoPassReq){
+    Write-Host $user.CanonicalName -ForegroundColor Red
+}
+
