@@ -327,8 +327,27 @@ foreach ($user in $NoPassReq){
 $TotalAccounts = (Get-AdUser -filter *).count
 $EnabledAccounts = (Get-AdUser -filter * |Where {$_.enabled -eq "True"}).count
 $DisabeldAccounts = (Get-ADUser -filter * |Where {$_.enabled -ne "False"}).count
-Write-host "There are" $TotalAccounts "Total accounts of that" $EnabledAccounts "are enabled and" $DisabeldAccounts "Disabled`n"
+Write-host "`nThere are" $TotalAccounts "Total accounts of that" $EnabledAccounts "are enabled and" $DisabeldAccounts "Disabled`n"
 
 #Stale Computers
 $StaleComputers = Get-ADComputer -Filter {LastLogonTimeStamp -lt $Days} 
-Write-host "There are " $StaleComputers "Stale commputer accounts"
+Write-host "`nThere are" $StaleComputers "Stale commputer accounts"
+
+#Computers Total
+$ADServers = Get-ADComputer -Filter "OperatingSystem -Like '*Windows Server*'"
+Write-host "`nThere are" ($ADServers | Measure-Object).Count "servers in Active Directory"
+
+#Stale Servers
+$StaleServers = Get-ADComputer -Filter "OperatingSystem -Like '*Windows Server*'"
+$StaleServers = $StaleServers | Where-Object {($_.LastLogonTimeStamp -lt $Days)}
+Write-host "`nThere are" $StaleServers.count "stale server accounts"
+
+$ADWorkstations = Get-ADComputer -Filter "OperatingSystem -notLike '*Windows Server*'"
+Write-host "`nThere are" ($ADWorkstations | Measure-Object).Count "workstations in Active Directory"
+
+#Stale Workstations
+$StaleWorkstations = Get-ADComputer -Filter "OperatingSystem -notLike '*Windows Server*'"
+$StaleWorkstations = $StaleWorkstations | Where-Object {($_.LastLogonTimeStamp -lt $Days)}
+Write-host "`nThere are" $StaleWorkstations.count "stale commputer accounts"
+
+Write-Host "`n"
