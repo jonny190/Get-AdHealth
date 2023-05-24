@@ -1,4 +1,4 @@
-# Check Active Directory Health Script 
+# Check Active Directory Server Health Script 
 ##Variables
 $InactiveDays = 90
 $Days = (Get-Date).Adddays(-($InactiveDays))
