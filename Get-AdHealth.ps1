@@ -1,4 +1,7 @@
 # Check Active Directory Health Script 
+##Variables
+$InactiveDays = 90
+$Days = (Get-Date).Adddays(-($InactiveDays))
 
 ##DCDiag Function
 function Invoke-DcDiag {
@@ -8,7 +11,7 @@ function Invoke-DcDiag {
         [string]$DomainController
     )
     $result = dcdiag /s:$DomainController
-    $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | foreach {
+    $result | select-string -pattern '\. (.*) \b(passed|failed)\b test (.*)' | ForEach-Object {
         $obj = @{
             TestName = $_.Matches.Groups[3].Value
             TestResult = $_.Matches.Groups[2].Value
@@ -21,7 +24,7 @@ function Invoke-DcDiag {
 ##Sites Function
 function Get-SitesInfo {
     ## Get all replication subnets from Sites & Services
-    $Subnets = Get-ADReplicationSubnet -filter * -Properties * | Select Name, Site, Location, Description
+    $Subnets = Get-ADReplicationSubnet -filter * -Properties * | Select-Object Name, Site, Location, Description
 
     ## Create an empty array to build the subnet list
     $SiteResultsArray = @()
@@ -30,7 +33,7 @@ function Get-SitesInfo {
     ForEach ($Subnet in $Subnets) {
         
         $SiteName = ""
-        If ($Subnet.Site -ne $null) { $SiteName = $Subnet.Site.Split(',')[0].Trim('CN=') }
+        If ($null -ne $Subnet.Site) { $SiteName = $Subnet.Site.Split(',')[0].Trim('CN=') }
 
         $DcInSite = $False
         If ($DcList.Site -Contains $SiteName) { $DcInSite = $True }
@@ -127,7 +130,7 @@ if ($healthyControllers.count -gt 1 ) {
     } 
 } else { 
 
-    Write-Host "There is only one DC in the domain`n" -ForegroundColor Yellow 
+    Write-Host "There is only one DC in the domain skipping test`n" -ForegroundColor DarkGreen
 
 } 
 
@@ -181,7 +184,7 @@ Write-Host "$ridMaster" -ForegroundColor Blue
 Write-Host "PDC Emulator: " -NoNewline
 Write-Host "$pdcEmulator" -ForegroundColor Blue
 Write-Host "Infrastructure Master: " -NoNewline
-Write-Host "$infrastructureMaster" -ForegroundColor Blue
+Write-Host "$infrastructureMaster`n" -ForegroundColor Blue
 
 # Retrieve all AD sites
 $Siteinfo = Get-SitesInfo
@@ -216,3 +219,13 @@ foreach ($sitename in $Siteinfo.SiteName) {
             Write-Host "Error while getting Domain controlers for site $sitename"
         }
     }
+
+# Find Stale AD Users
+$OutdatedUser = Get-ADUser -Filter {LastLogonTimeStamp -lt $Days -and enabled -eq $true} -Properties LastLogonTimeStamp
+Write-host "There are"$OutdatedUser.count"Uses who have not logged in in the last $InactiveDays days"
+
+#Find Unlinked GPO items
+$UnlinkedGPO = Get-GPO -All | Sort-Object displayname | Where-Object { If ( $_ | Get-GPOReport -ReportType XML | Select-String -NotMatch "<LinksTo>" ) {$_.DisplayName } }
+Write-host "There are"$UnlinkedGPO.count" unlinked GPO see names below"
+$UnlinkedGPO.DisplayName
+
