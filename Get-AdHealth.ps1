@@ -18,6 +18,37 @@ function Invoke-DcDiag {
     }
 }
 
+##Sites Function
+function Get-SitesInfo {
+    ## Get all replication subnets from Sites & Services
+    $Subnets = Get-ADReplicationSubnet -filter * -Properties * | Select Name, Site, Location, Description
+
+    ## Create an empty array to build the subnet list
+    $SiteResultsArray = @()
+
+    ## Loop through all subnets and build the list
+    ForEach ($Subnet in $Subnets) {
+        
+        $SiteName = ""
+        If ($Subnet.Site -ne $null) { $SiteName = $Subnet.Site.Split(',')[0].Trim('CN=') }
+
+        $DcInSite = $False
+        If ($DcList.Site -Contains $SiteName) { $DcInSite = $True }
+        
+        $RA = New-Object PSObject
+        $RA | Add-Member -type NoteProperty -name "Subnet"   -Value $Subnet.Name
+        $RA | Add-Member -type NoteProperty -name "SiteName" -Value $SiteName
+        $RA | Add-Member -type NoteProperty -name "DcInSite" -Value $DcInSite
+        $RA | Add-Member -type NoteProperty -name "SiteLoc"  -Value $Subnet.Location
+        $RA | Add-Member -type NoteProperty -name "SiteDesc" -Value $Subnet.Description
+        
+        $SiteResultsArray += $RA
+
+}
+
+$SiteResultsArray
+}
+
 # Check if the Active Directory module is available 
 
 if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) { 
@@ -26,7 +57,10 @@ if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
 
     exit 1 
 
-} 
+} else {
+    # Import the Active Directory module
+    Import-Module ActiveDirectory
+}
 
   
 
@@ -103,7 +137,6 @@ $LocalDCDiag = Invoke-DcDiag -DomainController $env:COMPUTERNAME
 foreach ($item in $LocalDCDiag) {
     if ($item.TestResult -like '*failed*') {
         Write-Host "Test $($item.TestName) Failed" -ForegroundColor Red
-    } else {
     }
 }
 
@@ -149,3 +182,39 @@ Write-Host "PDC Emulator: " -NoNewline
 Write-Host "$pdcEmulator" -ForegroundColor Blue
 Write-Host "Infrastructure Master: " -NoNewline
 Write-Host "$infrastructureMaster" -ForegroundColor Blue
+
+# Retrieve all AD sites
+$Siteinfo = Get-SitesInfo
+
+foreach ($sitename in $Siteinfo.SiteName) {
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        $hosts = Get-ADDomainController -Discover -Site $sitename
+        foreach ($server in $hosts.HostName) {
+            Write-Host $server
+            try {
+                $dnsResolution = Test-Connection -ComputerName $server -Count 1 -Quiet
+        
+                if ($dnsResolution) {
+                    $135result = Test-NetConnection -ComputerName $server -Port 135 -InformationLevel Quiet
+        
+                    if ($135result) {
+                        Write-Host "Port 135 is open on $server" -ForegroundColor Green
+                    }
+                    else {
+                        Write-Host "Port 135 is closed on $server" -ForegroundColor Red
+                    }
+                }
+                else {
+                    Write-Host "DNS resolution failed for $server" -ForegroundColor Red
+                }
+            }
+            catch {
+                Write-Host "An error occurred while testing DNS resolution of $server"
+            }
+        }
+    }
+        catch {
+            Write-Host "Error while getting Domain controlers for site $sitename"
+        }
+    }
