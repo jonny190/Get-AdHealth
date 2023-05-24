@@ -15,6 +15,7 @@ This is a quick and dirty script to check the health of a given DC. This will li
 - RID exhaustion check
 - Duplicate SPN lookup
 - Time source lookup
+- Added DNS Scavenging check
 
 ## Authors
 
