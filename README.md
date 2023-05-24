@@ -18,6 +18,14 @@ This is a quick and dirty script to check the health of a given DC. This will li
 - Added DNS Scavenging check
 - Lists DNS Forwarders and warns if less then 2
 
+## To Do
+-- Paswords never expire
+-- Password not req
+-- Users total 
+-- Users disabled
+-- Stale computer accounts
+-- Total Computers / Servers
+
 ## Authors
 
 - [@Jonny190](https://www.github.com/jonny190)
