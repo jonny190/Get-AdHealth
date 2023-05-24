@@ -317,37 +317,38 @@ foreach ($user in $NoPassReq){
 }
 
 #Checking PasswordNeverExpires
-$NoPassReq = get-aduser -filter * -properties Name, PasswordNeverExpires | where {$_.passwordNeverExpires -eq "true" }
+$NoPassReq = get-aduser -filter * -properties Name, PasswordNeverExpires | Where-Object {$_.passwordNeverExpires -eq "true" }
 Write-host "`nBelow are accounts with the attribute PasswordNeverExpires set:"
 foreach ($user in $NoPassReq){
     Write-Host $user.CanonicalName -ForegroundColor Red
 }
 
-#Account Totals
+#User Account Totals
 $TotalAccounts = (Get-AdUser -filter *).count
-$EnabledAccounts = (Get-AdUser -filter * |Where {$_.enabled -eq "True"}).count
-$DisabeldAccounts = (Get-ADUser -filter * |Where {$_.enabled -ne "False"}).count
+$EnabledAccounts = (Get-AdUser -filter * |Where-Object {$_.enabled -eq "True"}).count
+$DisabeldAccounts = (Get-ADUser -filter * |Where-Object {$_.enabled -ne "False"}).count
 Write-host "`nThere are" $TotalAccounts "Total accounts of that" $EnabledAccounts "are enabled and" $DisabeldAccounts "Disabled`n"
 
-#Stale Computers
-$StaleComputers = Get-ADComputer -Filter {LastLogonTimeStamp -lt $Days} 
-Write-host "`nThere are" $StaleComputers "Stale commputer accounts"
-
-#Computers Total
+#Servers Total
 $ADServers = Get-ADComputer -Filter "OperatingSystem -Like '*Windows Server*'"
-Write-host "`nThere are" ($ADServers | Measure-Object).Count "servers in Active Directory"
+$StaleServers = Get-ADComputer -Filter "OperatingSystem -Like '*Windows Server*'" -Properties *
+$StaleServers = $StaleServers | Where-Object {($_.LastLogonTimeStamp -lt $Days.TotalSeconds)}
+Write-host "`nThere are" ($ADServers | Measure-Object).Count "servers in Active Directory and" ($StaleServers | Measure-Object).count "are stale server accounts"
+if (($StaleServers | Measure-Object).Count -gt 0) {
+    foreach ($Svrname in $StaleServers) {
+        Write-Host $Svrname.name"is stale"
+    }
+}
 
-#Stale Servers
-$StaleServers = Get-ADComputer -Filter "OperatingSystem -Like '*Windows Server*'"
-$StaleServers = $StaleServers | Where-Object {($_.LastLogonTimeStamp -lt $Days)}
-Write-host "`nThere are" $StaleServers.count "stale server accounts"
-
+#Workstations Total
 $ADWorkstations = Get-ADComputer -Filter "OperatingSystem -notLike '*Windows Server*'"
-Write-host "`nThere are" ($ADWorkstations | Measure-Object).Count "workstations in Active Directory"
-
-#Stale Workstations
 $StaleWorkstations = Get-ADComputer -Filter "OperatingSystem -notLike '*Windows Server*'"
-$StaleWorkstations = $StaleWorkstations | Where-Object {($_.LastLogonTimeStamp -lt $Days)}
-Write-host "`nThere are" $StaleWorkstations.count "stale commputer accounts"
+$StaleWorkstations = $StaleWorkstations | Where-Object {($_.LastLogonTimeStamp -lt $Days.TotalSeconds)}
+Write-host "`nThere are" ($ADWorkstations | Measure-Object).Count "Workstations in Active Directory and" $StaleWorkstations.count "are stale accounts"
+if (($StaleServers | Measure-Object).Count -gt 0) {
+    foreach ($Svrname in $StaleServers) {
+        Write-Host $Svrname.name"is stale"
+    }
+}
 
 Write-Host "`n"
