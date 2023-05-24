@@ -52,6 +52,27 @@ function Get-SitesInfo {
 $SiteResultsArray
 }
 
+##Remaining RIDs Function
+function Get-RIDsremainingAdPsh
+{
+
+    param ($domainDN)
+    $property = get-adobject "cn=rid manager$,cn=system,$domainDN" -property ridavailablepool -server ((Get-ADDomain $domaindn).RidMaster)
+    $rid = $property.ridavailablepool    
+    [int32]$totalSIDS = $($rid) / ([math]::Pow(2,32))
+    [int64]$temp64val = $totalSIDS * ([math]::Pow(2,32))
+    [int32]$currentRIDPoolCount = $($rid) - $temp64val
+    $ridsremaining = $totalSIDS - $currentRIDPoolCount
+
+    $Rid = New-Object PSObject
+    $Rid | Add-Member -type NoteProperty -name "IssuedRID"  -Value $currentRIDPoolCount
+    $Rid | Add-Member -type NoteProperty -name "RemainingRID" -Value $ridsremaining
+    
+    $RIDsResultsArray += $Rid
+    $RIDsResultsArray
+}
+
+
 # Check if the Active Directory module is available 
 
 if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) { 
@@ -222,10 +243,13 @@ foreach ($sitename in $Siteinfo.SiteName) {
 
 # Find Stale AD Users
 $OutdatedUser = Get-ADUser -Filter {LastLogonTimeStamp -lt $Days -and enabled -eq $true} -Properties LastLogonTimeStamp
-Write-host "There are"$OutdatedUser.count"Uses who have not logged in in the last $InactiveDays days"
+Write-host "There are"$OutdatedUser.count"Uses who have not logged in in the last $InactiveDays days`n"
 
 #Find Unlinked GPO items
 $UnlinkedGPO = Get-GPO -All | Sort-Object displayname | Where-Object { If ( $_ | Get-GPOReport -ReportType XML | Select-String -NotMatch "<LinksTo>" ) {$_.DisplayName } }
 Write-host "There are"$UnlinkedGPO.count" unlinked GPO see names below"
 $UnlinkedGPO.DisplayName
 
+#Remaining RID's
+$Rids = Get-RIDsRemainingAdPsh $domain.DistinguishedName
+Write-host "`nThere are" $Rids.IssuedRID "Issued and" $Rids.RemainingRID "Rids remaining"
