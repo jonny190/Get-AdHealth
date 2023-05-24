@@ -20,10 +20,10 @@ This is a quick and dirty script to check the health of a given DC. This will li
 
 ## To Do
 ### User accounts
-- Paswords never expire
-- Password not req
-- Users total 
-- Users disabled
+- ~~Paswords never expire~~
+- ~~Password not req~~
+- ~~Users total~~
+- ~~Users disabled~~
 ### Computer accounts
 - Stale computer accounts
 - Total Computers / Servers

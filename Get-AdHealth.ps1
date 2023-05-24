@@ -311,15 +311,24 @@ else {
 
 #Checking PasswordNotRequired
 $NoPassReq = Get-ADUser -Filter {PasswordNotRequired -eq $true} -Properties *
-Write-host "Below are accounts with the attribute PasswordNotRequired set:"
+Write-host "`nBelow are accounts with the attribute PasswordNotRequired set:"
 foreach ($user in $NoPassReq){
     Write-Host $user.CanonicalName -ForegroundColor Red
 }
 
 #Checking PasswordNeverExpires
 $NoPassReq = get-aduser -filter * -properties Name, PasswordNeverExpires | where {$_.passwordNeverExpires -eq "true" }
-Write-host "Below are accounts with the attribute PasswordNeverExpires set:"
+Write-host "`nBelow are accounts with the attribute PasswordNeverExpires set:"
 foreach ($user in $NoPassReq){
     Write-Host $user.CanonicalName -ForegroundColor Red
 }
 
+#Account Totals
+$TotalAccounts = (Get-AdUser -filter *).count
+$EnabledAccounts = (Get-AdUser -filter * |Where {$_.enabled -eq "True"}).count
+$DisabeldAccounts = (Get-ADUser -filter * |Where {$_.enabled -ne "False"}).count
+Write-host "There are" $TotalAccounts "Total accounts of that" $EnabledAccounts "are enabled and" $DisabeldAccounts "Disabled`n"
+
+#Stale Computers
+$StaleComputers = Get-ADComputer -Filter {LastLogonTimeStamp -lt $Days} 
+Write-host "There are " $StaleComputers "Stale commputer accounts"
