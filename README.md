@@ -19,14 +19,17 @@ This is a quick and dirty script to check the health of a given DC. This will li
 - Lists DNS Forwarders and warns if less then 2
 
 ## To Do
--- Paswords never expire
--- Password not req
--- Users total 
--- Users disabled
--- Stale computer accounts
--- Total Computers / Servers
+### User accounts
+- Paswords never expire
+- Password not req
+- Users total 
+- Users disabled
+### Computer accounts
+- Stale computer accounts
+- Total Computers / Servers
 
 ## Authors
 
 - [@Jonny190](https://www.github.com/jonny190)
+- [@Spud](https://github.com/jonathan-davies-uk)
 
