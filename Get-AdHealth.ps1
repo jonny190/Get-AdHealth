@@ -89,6 +89,9 @@ if ($IsVirtual -eq "True") {
     Write-Host "This is a phyiscal server" -ForegroundColor Yellow
 }
 
+#Hostname Printout
+write-host $env:COMPUTERNAME -ForegroundColor Green
+
 # Check if the Active Directory module is available 
 
 if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) { 
