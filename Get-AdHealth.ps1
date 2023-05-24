@@ -259,7 +259,7 @@ foreach ($sitename in $Siteinfo.SiteName) {
 
 # Find Stale AD Users
 $OutdatedUser = Get-ADUser -Filter {LastLogonTimeStamp -lt $Days -and enabled -eq $true} -Properties LastLogonTimeStamp
-Write-host "There are"$OutdatedUser.count"Uses who have not logged in in the last $InactiveDays days`n"
+Write-host "`nThere are"$OutdatedUser.count"Uses who have not logged in in the last $InactiveDays days`n"
 
 #Find Unlinked GPO items
 $UnlinkedGPO = Get-GPO -All | Sort-Object displayname | Where-Object { If ( $_ | Get-GPOReport -ReportType XML | Select-String -NotMatch "<LinksTo>" ) {$_.DisplayName } }
