@@ -16,6 +16,7 @@ This is a quick and dirty script to check the health of a given DC. This will li
 - Duplicate SPN lookup
 - Time source lookup
 - Added DNS Scavenging check
+- Lists DNS Forwarders and warns if less then 2
 
 ## Authors
 
