@@ -278,10 +278,18 @@ Write-Host "`nWe"$SPNResult"`n"
 $Timesource = Invoke-Expression "w32tm /query /computer:$computers /source"
 if ($Timesource -like "*Local*") {
     if ($IsVirtual -eq "True") {
-        Write-Host "This servers time source is" $Timesource "and this is a VM so check hypervisor time settings" -ForegroundColor Yellow
+        Write-Host "This servers time source is" $Timesource "and this is a VM so check hypervisor time settings`n" -ForegroundColor Yellow
     } else {
-                Write-Host "This servers time source is" $Timesource -ForegroundColor Yellow
+                Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "This servers time source is" $Timesource -ForegroundColor Green
+    Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Green
+}
+
+#DNS  Check
+$DnsServerScavenging = Get-DnsServerScavenging
+if ($DnsServerScavenging.ScavengingState -eq "True") {
+    Write-Host "DNS reccord scavenging is enabled and set to" $DnsServerScavenging.ScavengingInterval -ForegroundColor Green
+} else {
+    Write-Host "DNS reccord scavenging is disabled" -ForegroundColor Red
 }
