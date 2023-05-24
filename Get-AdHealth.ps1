@@ -81,6 +81,14 @@ $SPNres = $SPNOut.Where({ $_ -ne "" })
 $SPNres[1]
 }
 
+#Check if virtual
+$IsVirtual = ((Get-WmiObject win32_computersystem).model -eq 'VMware Virtual Platform' -or ((Get-WmiObject win32_computersystem).model -eq 'Virtual Machine') -or ((Get-WmiObject win32_computersystem).model -like 'Standard PC*'))
+if ($IsVirtual -eq "True") {
+    Write-Host "This is a virtual server" -ForegroundColor Green
+} else {
+    Write-Host "This is a phyiscal server" -ForegroundColor Yellow
+}
+
 # Check if the Active Directory module is available 
 
 if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) { 
@@ -264,4 +272,16 @@ Write-host "`nThere are" $Rids.IssuedRID "Issued and" $Rids.RemainingRID "Rids r
 
 #DuplicateSPN check
 $SPNResult = Get-DuplicateSPN
-Write-Host "`nWe"$SPNResult
+Write-Host "`nWe"$SPNResult"`n"
+
+#Display time server source 
+$Timesource = Invoke-Expression "w32tm /query /computer:$computers /source"
+if ($Timesource -like "*Local*") {
+    if ($IsVirtual -eq "True") {
+        Write-Host "This servers time source is" $Timesource "and this is a VM so check hypervisor time settings" -ForegroundColor Yellow
+    } else {
+                Write-Host "This servers time source is" $Timesource -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "This servers time source is" $Timesource -ForegroundColor Green
+}
