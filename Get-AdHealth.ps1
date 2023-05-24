@@ -82,7 +82,7 @@ $SPNres[1]
 }
 
 #Check if virtual
-$IsVirtual = ((Get-WmiObject win32_computersystem).model -eq 'VMware Virtual Platform' -or ((Get-WmiObject win32_computersystem).model -eq 'Virtual Machine') -or ((Get-WmiObject win32_computersystem).model -like 'Standard PC*'))
+$IsVirtual = ((Get-WmiObject win32_computersystem).model -like 'VMware*' -or ((Get-WmiObject win32_computersystem).model -eq 'Virtual Machine') -or ((Get-WmiObject win32_computersystem).model -like 'Standard PC*'))
 if ($IsVirtual -eq "True") {
     Write-Host "This is a virtual server" -ForegroundColor Green
 } else {
@@ -286,10 +286,21 @@ if ($Timesource -like "*Local*") {
     Write-Host "This servers time source is" $Timesource"`n" -ForegroundColor Green
 }
 
-#DNS  Check
+#DNS Check
 $DnsServerScavenging = Get-DnsServerScavenging
 if ($DnsServerScavenging.ScavengingState -eq "True") {
     Write-Host "DNS reccord scavenging is enabled and set to" $DnsServerScavenging.ScavengingInterval -ForegroundColor Green
 } else {
     Write-Host "DNS reccord scavenging is disabled" -ForegroundColor Red
+}
+
+#Get DNS Forwarders
+$DNSFWD = Get-DnsServerForwarder
+if ($DNSFWD.IPAddress.count -gt 1) {
+    foreach ($DNSSVR in $DNSFWD.IPAddress) {
+    Write-Host "DNS forwarder is set to" $DNSSVR
+}
+else {
+    Write-host "Only one DNS forwarder is configured" -ForegroundColor Red
+}
 }
