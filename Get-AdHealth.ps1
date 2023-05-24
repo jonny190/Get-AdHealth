@@ -196,7 +196,6 @@ foreach ($sitename in $Siteinfo.SiteName) {
         
                 if ($dnsResolution) {
                     $135result = Test-NetConnection -ComputerName $server -Port 135 -InformationLevel Quiet
-        
                     if ($135result) {
                         Write-Host "Port 135 is open on $server" -ForegroundColor Green
                     }
