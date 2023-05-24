@@ -313,14 +313,14 @@ else {
 $NoPassReq = Get-ADUser -Filter {PasswordNotRequired -eq $true} -Properties *
 Write-host "`nBelow are accounts with the attribute PasswordNotRequired set:"
 foreach ($user in $NoPassReq){
-    Write-Host $user.CanonicalName -ForegroundColor Red
+    Write-Host $user.name -ForegroundColor Red
 }
 
 #Checking PasswordNeverExpires
 $NoPassReq = get-aduser -filter * -properties Name, PasswordNeverExpires | Where-Object {$_.passwordNeverExpires -eq "true" }
 Write-host "`nBelow are accounts with the attribute PasswordNeverExpires set:"
 foreach ($user in $NoPassReq){
-    Write-Host $user.CanonicalName -ForegroundColor Red
+    Write-Host $user.name -ForegroundColor Red
 }
 
 #User Account Totals
