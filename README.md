@@ -4,7 +4,17 @@
 This is a quick and dirty script to check the health of a given DC. This will likely seen lots of revisions and chages as it developes
 
 
-
+## Functions
+- Virtual Check
+- Replication status
+- DCDIAG
+- Forest and domain functional Level lookup
+- Port test to all DC's on all sites (Port 135)
+- Users not logged in in 90 day lookup
+- Unlinked GPO lookup and list
+- RID exhaustion check
+- Duplicate SPN lookup
+- Time source lookup
 
 ## Authors
 
