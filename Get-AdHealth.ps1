@@ -72,6 +72,14 @@ function Get-RIDsremainingAdPsh
     $RIDsResultsArray
 }
 
+##Duplicate SPN Detection
+Function Get-DuplicateSPN
+{
+$spncmd="setspn -X -p"
+$SPNOut = Invoke-Expression $spncmd
+$SPNres = $SPNOut.Where({ $_ -ne "" })
+$SPNres[1]
+}
 
 # Check if the Active Directory module is available 
 
@@ -253,3 +261,7 @@ $UnlinkedGPO.DisplayName
 #Remaining RID's
 $Rids = Get-RIDsRemainingAdPsh $domain.DistinguishedName
 Write-host "`nThere are" $Rids.IssuedRID "Issued and" $Rids.RemainingRID "Rids remaining"
+
+#DuplicateSPN check
+$SPNResult = Get-DuplicateSPN
+Write-Host "`nWe"$SPNResult
