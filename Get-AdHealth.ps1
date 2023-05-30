@@ -304,9 +304,9 @@ if ($DNSFWD.IPAddress.count -gt 1) {
     foreach ($DNSSVR in $DNSFWD.IPAddress) {
     Write-Host "DNS forwarder is set to" $DNSSVR
 }
+}
 else {
     Write-host "Only one DNS forwarder is configured" -ForegroundColor Red
-}
 }
 
 #Checking PasswordNotRequired
