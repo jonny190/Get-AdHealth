@@ -121,7 +121,44 @@ if (-not ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administr
 
 } 
 
-  
+
+# Retrieve all AD sites
+$Siteinfo = Get-SitesInfo
+
+foreach ($sitename in $Siteinfo.SiteName) {
+    $ErrorActionPreference = "SilentlyContinue"
+    try {
+        $hosts = Get-ADDomainController -Discover -Site $sitename
+        foreach ($server in $hosts.HostName) {
+            try {
+                $dnsResolution = Test-Connection -ComputerName $server -Count 1 -Quiet
+        
+                if ($dnsResolution) {
+                    $Old_P_Pref = $Global:ProgressPreference
+                    $Global:ProgressPreference = 'SilentlyContinue'
+                    $135result = Test-NetConnection -ComputerName $server -Port 135 -InformationLevel Quiet
+                    $ProgressPreference = $Old_P_Pref
+                    if ($135result) {
+                        Write-Host "Port 135 is open on $server" -ForegroundColor Green
+                    }
+                    else {
+                        Write-Host "Port 135 is closed on $server" -ForegroundColor Red
+                    }
+                }
+                else {
+                    Write-Host "DNS resolution failed for $server" -ForegroundColor Red
+                }
+            }
+            catch {
+                Write-Host "An error occurred while testing DNS resolution of $server"
+            }
+        }
+    }
+        catch {
+            Write-Host "Error while getting Domain controlers for site $sitename"
+        }
+    }
+
 
 # Check domain controller connectivity 
 
@@ -135,7 +172,11 @@ $healthyControllers = $domainControllers | Where-Object {
 
         Write-Host "Domain controller $($_.HostName) is not reachable." -ForegroundColor Yellow 
 
-    } 
+    } else {
+        
+        Write-Host "Domain controller $($_.HostName) is reachable." -ForegroundColor Green 
+
+    }
 
     $result 
 
@@ -147,7 +188,9 @@ $healthyControllers = $domainControllers | Where-Object {
 
 Write-Host "Checking replication status..." 
 
-$replicationStatus = Get-ADReplicationPartnerMetadata -Target $healthyControllers.Domain -Scope Domain -ErrorAction SilentlyContinue 
+$HealthyDomains = $healthyControllers | Sort-Object -Property Domain -Unique
+
+$replicationStatus = Get-ADReplicationPartnerMetadata -Target $HealthyDomains.Domain -Scope Domain -ErrorAction SilentlyContinue 
 
 if ($healthyControllers.count -gt 1 ) {
 
@@ -159,7 +202,9 @@ if ($healthyControllers.count -gt 1 ) {
 
                 Write-Host "Replication issue detected with partner $($_.Partner) on $($_.LastReplicationTime).`n" -ForegroundColor Red 
 
-            } 
+            } else {
+                Write-Host "No replication issues detected with partner $($_.Partner).`n" -ForegroundColor Green 
+            }
 
         } 
 
@@ -225,40 +270,6 @@ Write-Host "PDC Emulator: " -NoNewline
 Write-Host "$pdcEmulator" -ForegroundColor Blue
 Write-Host "Infrastructure Master: " -NoNewline
 Write-Host "$infrastructureMaster`n" -ForegroundColor Blue
-
-# Retrieve all AD sites
-$Siteinfo = Get-SitesInfo
-
-foreach ($sitename in $Siteinfo.SiteName) {
-    $ErrorActionPreference = "SilentlyContinue"
-    try {
-        $hosts = Get-ADDomainController -Discover -Site $sitename
-        foreach ($server in $hosts.HostName) {
-            try {
-                $dnsResolution = Test-Connection -ComputerName $server -Count 1 -Quiet
-        
-                if ($dnsResolution) {
-                    $135result = Test-NetConnection -ComputerName $server -Port 135 -InformationLevel Quiet
-                    if ($135result) {
-                        Write-Host "Port 135 is open on $server" -ForegroundColor Green
-                    }
-                    else {
-                        Write-Host "Port 135 is closed on $server" -ForegroundColor Red
-                    }
-                }
-                else {
-                    Write-Host "DNS resolution failed for $server" -ForegroundColor Red
-                }
-            }
-            catch {
-                Write-Host "An error occurred while testing DNS resolution of $server"
-            }
-        }
-    }
-        catch {
-            Write-Host "Error while getting Domain controlers for site $sitename"
-        }
-    }
 
 # Find Stale AD Users
 $OutdatedUser = Get-ADUser -Filter {LastLogonTimeStamp -lt $Days -and enabled -eq $true} -Properties LastLogonTimeStamp
