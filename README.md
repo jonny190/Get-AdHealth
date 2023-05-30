@@ -28,6 +28,9 @@ This is a quick and dirty script to check the health of a given DC. This will li
 - ~~Stale computer accounts~~
 - ~~Total Computers / Servers~~
 
+## Screenshot
+![Screenshot](/Images/Get-ADHealth_Screenshot%202023-05-30%20104722.png)
+
 ## Authors
 
 - [@Jonny190](https://www.github.com/jonny190)
